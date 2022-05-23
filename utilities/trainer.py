@@ -114,7 +114,7 @@ class PGTrainer(object):
 
     def logging(self, stat):
         for k, v in stat.items():
-            self.logger.add_scalar('data/' + k, v, self.episodes)
+            self.logger.log({k: v}, step=self.episodes)
 
     def print_info(self, stat):
         string = [f'\nEpisode: {self.episodes}']

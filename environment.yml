@@ -122,7 +122,6 @@ dependencies:
     - markdown==3.3.2
     - matplotlib==2.2.5
     - metakernel==0.27.0
-    - mpi4py==3.0.3
     - munch==2.5.0
     - networkx==2.5
     - numpy==1.19.5
@@ -186,4 +185,4 @@ dependencies:
     - xlrd==1.2.0
     - xlsxwriter==1.3.7
     - PyYAML
-
+		- wandb

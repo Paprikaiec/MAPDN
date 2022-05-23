@@ -4,6 +4,8 @@ import argparse
 import yaml
 from tensorboardX import SummaryWriter
 
+import wandb
+
 from models.model_registry import Model, Strategy
 from environments.var_voltage_control.voltage_control_env import VoltageControl
 from utilities.util import convert, dict2str
@@ -75,27 +77,33 @@ else:
 # create the save folders
 if "model_save" not in os.listdir(save_path):
     os.mkdir(save_path + "model_save")
-if "tensorboard" not in os.listdir(save_path):
-    os.mkdir(save_path + "tensorboard")
+# if "tensorboard" not in os.listdir(save_path):
+#     os.mkdir(save_path + "tensorboard")
 if log_name not in os.listdir(save_path + "model_save/"):
     os.mkdir(save_path + "model_save/" + log_name)
-if log_name not in os.listdir(save_path + "tensorboard/"):
-    os.mkdir(save_path + "tensorboard/" + log_name)
-else:
-    path = save_path + "tensorboard/" + log_name
-    for f in os.listdir(path):
-        file_path = os.path.join(path,f)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+# if log_name not in os.listdir(save_path + "tensorboard/"):
+#     os.mkdir(save_path + "tensorboard/" + log_name)
+# else:
+#     path = save_path + "tensorboard/" + log_name
+#     for f in os.listdir(path):
+#         file_path = os.path.join(path,f)
+#         if os.path.isfile(file_path):
+#             os.remove(file_path)
 
-# create the logger
-logger = SummaryWriter(save_path + "tensorboard/" + log_name)
+#use wandb
+run = wandb.init(config={**env_config_dict, **alg_config_dict},
+				 project=log_name,
+				 entity="wangyiwen")
+
+# create the logger(wandb)
+# logger = SummaryWriter(save_path + "tensorboard/" + log_name)
+logger = wandb
 
 model = Model[argv.alg]
 
 strategy = Strategy[argv.alg]
 
-print (f"{args}\n")
+print(f"{args}\n")
 
 if strategy == "pg":
     train = PGTrainer(args, model, env, logger)
@@ -104,11 +112,11 @@ elif strategy == "q":
 else:
     raise RuntimeError("Please input the correct strategy, e.g. pg or q.")
 
-with open(save_path + "tensorboard/" + log_name + "/log.txt", "w+") as file:
-    alg_args2str = dict2str(alg_config_dict, 'alg_params')
-    env_args2str = dict2str(env_config_dict, 'env_params')
-    file.write(alg_args2str + "\n")
-    file.write(env_args2str + "\n")
+# with open(save_path + "tensorboard/" + log_name + "/log.txt", "w+") as file:
+#     alg_args2str = dict2str(alg_config_dict, 'alg_params')
+#     env_args2str = dict2str(env_config_dict, 'env_params')
+#     file.write(alg_args2str + "\n")
+#     file.write(env_args2str + "\n")
 
 for i in range(args.train_episodes_num):
     stat = {}
@@ -119,4 +127,5 @@ for i in range(args.train_episodes_num):
         th.save({"model_state_dict": train.behaviour_net.state_dict()}, save_path + "model_save/" + log_name + "/model.pt")
         print ("The model is saved!\n")
 
-logger.close()
+# logger.close()
+run.finish()
